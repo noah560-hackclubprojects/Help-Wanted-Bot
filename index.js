@@ -35,9 +35,16 @@ app.command("/help-wanted-bot-list", async ({ command, ack, respond }) => {
 
 app.command("/help-wanted-bot-search", async ({ command, ack, respond }) => {
     await ack();
-    await respond({
-        text: `:slightly_frowning_face: Sorry, I don't know how to do that yet since I wasn't programmed for it. Check back later!`
-    });
+    const results = (await get_formatted_list()).filter(x => x.includes(command.text));
+    if (results.length > 0) {
+        await respond({
+            text: `Here are your search results for \`${command.text}\`:\n${results.join("\n")}`
+        });
+    } else {
+        await respond({
+            text: `I couldn't find anything! Sorry!`
+        });
+    }
 });
 
 app.command("/help-wanted-bot-post", async ({ command, ack, respond }) => {
