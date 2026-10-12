@@ -55,4 +55,9 @@ module.exports = {
     get_list,
     clear_old_jobs,
     add_job,
+    job_done: async (title, user) => {
+        await list_transaction(async list => {
+            return list.filter(x => x.title !== title || x.user !== x.user);
+        })
+    }
 };

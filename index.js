@@ -47,20 +47,49 @@ app.command("/help-wanted-bot-search", async ({ command, ack, respond }) => {
     }
 });
 
+app.command("/help-wanted-bot-done", async ({ command, ack, respond }) => {
+    await ack();
+    const items = list.get_list().filter(item => (item.user === command.user_name && item.title == command.text));
+    if (items.length === 0) {
+        await respond({
+            text: `Sorry, but I couldn't find anything on the list that you posted with that title!`
+        });
+    } else if (items.length === 1) {
+        await respond({
+            text: `Deleting it now!`
+        });
+        await app.client.chat.postMessage({
+            channel: main_channel_id,
+            text: `ATTENTION: We have a finished help request! \n\`${command.user_name}\` no longer needs help with \`${items[0].title}\`.`
+        });
+    } else {
+        await respond({
+            text: `Something weird happened that shouldn't be possible! Please notify \`noahplaysmario\` so he canhelp me figure it out!`
+        });
+    }
+});
+
 app.command("/help-wanted-bot-post", async ({ command, ack, respond }) => {
     try {
         await ack();
+        const matches = list.get_list().filter(item => (item.user === command.user_name && item.title == command.text));
         const args_fullsplit = command.text.trim().split(" ");
         const args = args_fullsplit.slice(0, 2);
         args.push(args_fullsplit.slice(2).join(" "));
         list.add_job(args[0], command.user_name, args[1], args[2]);
-        await respond({
-            text: "Okay, I added your request!"
-        });
-        await app.client.chat.postMessage({
-            channel: main_channel_id,
-            text: `\`${command.user_name}\` needs help with \`${args[0]}\` for the YSWS \`${args[1]}\`: \`${args[2]}\``
-        });
+        if (matches.length === 0) {
+            await respond({
+                text: "Okay, I added your request!"
+            });
+            await app.client.chat.postMessage({
+                channel: main_channel_id,
+                text: `\`${command.user_name}\` needs help with \`${args[0]}\` for the YSWS \`${args[1]}\`: \`${args[2]}\``
+            });
+        } else {
+            await respond({
+                text: "You already have a help request with that title!"
+            });
+        }
     } catch (e) {
         await respond({
             text: `Oh no! Something happened!\n${e}`
