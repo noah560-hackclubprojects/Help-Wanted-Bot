@@ -1,0 +1,105 @@
+require("dotenv").config();
+
+const { App } = require("@slack/bolt");
+const list = require("./list");
+const fs = require("fs");
+
+const my_id = "U0BPA4K8TKQ";
+const main_channel_id = "help-with-projects";
+
+const app = new App({
+    token: process.env.SLACK_BOT_TOKEN,
+    appToken: process.env.SLACK_APP_TOKEN,
+    socketMode: true
+});
+
+async function get_formatted_list() {
+    return (await list.get_list()).map(item => {
+        return `\`${item.user}\` needs help with \`${item.name}\` for the YSWS \`${item.ysws}\`: \`${item.description}\``
+    });
+}
+
+app.command("/help-wanted-bot-ping", async ({ command, ack, respond }) => {
+    await ack();
+    await respond({
+        text: `Hi! I'm :robot_face: Help Wanted Bot :robot_face: , and I am here to connect Hack Clubbers who need help with projects to Hack Clubbers who can help them!`
+    });
+});
+
+app.command("/help-wanted-bot-list", async ({ command, ack, respond }) => {
+    await ack();
+    await respond({
+        text: "Here are current listed help requests:\n" + (await get_formatted_list()).join("\n")
+    });
+});
+
+app.command("/help-wanted-bot-search", async ({ command, ack, respond }) => {
+    await ack();
+    await respond({
+        text: `:slightly_frowning_face: Sorry, I don't know how to do that yet since I wasn't programmed for it. Check back later!`
+    });
+});
+
+app.command("/help-wanted-bot-post", async ({ command, ack, respond }) => {
+    try {
+        await ack();
+        const args_fullsplit = command.text.trim().split(" ");
+        const args = args_fullsplit.slice(0, 2);
+        args.push(args_fullsplit.slice(2).join(" "));
+        list.add_job(args[0], command.user_name, args[1], args[2]);
+        await respond({
+            text: "Okay, I added your request!"
+        });
+        await app.client.chat.postMessage({
+            channel: main_channel_id,
+            text: `\`${command.user_name}\` needs help with \`${args[0]}\` for the YSWS \`${args[1]}\`: \`${args[2]}\``
+        });
+    } catch (e) {
+        await respond({
+            text: `Oh no! Something happened!\n${e}`
+        });
+    }
+});
+
+app.command("/help-wanted-bot-say", async ({ command, ack, respond }) => {
+    await ack();
+    if (command.user_id == my_id) {
+        if (command.text.length > 0) {
+            await app.client.chat.postMessage({
+                channel: command.channel_id,
+                text: command.text.replaceAll("\\n", "\n")
+            });
+        } else {
+            await app.client.chat.postMessage({
+                channel: command.channel_id,
+                text: "Here are current listed help requests:\n" + (await get_formatted_list()).join("\n")
+            });
+        }
+    } else {
+        await respond({
+            text: `:x: NOT ALLOWED :x: \nSorry Dave, I'm afraid I can't do that.`
+        });
+    }
+});
+
+function date() {
+    const d = new Date();
+    const months = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+    return `${months[d.getUTCMonth()]} ${d.getUTCDate()}, ${d.getUTCFullYear()} at ${d.getUTCHours()}:00 UTC`
+}
+
+setInterval(async () => {
+    if (!fs.existsSync("last_advertisement")) fs.writeFileSync("last_advertisement", "");
+    if (await fs.readFileSync("last_advertisement", "utf8") != date()) {
+        fs.writeFileSync("last_advertisement", date());
+        await app.client.chat.postMessage({
+            channel: main_channel_id,
+            text: "It's " + date() + " and here are the current help requests:\n" + (await get_formatted_list()).join("\n")
+        });
+    }
+}, 10000);
+
+(async () => {
+    await app.start();
+    console.log("bot is running!");
+})();
