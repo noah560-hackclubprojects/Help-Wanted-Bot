@@ -49,7 +49,7 @@ app.command("/help-wanted-bot-search", async ({ command, ack, respond }) => {
 
 app.command("/help-wanted-bot-done", async ({ command, ack, respond }) => {
     await ack();
-    const items = list.get_list().filter(item => (item.user === command.user_name && item.title == command.text));
+    const items = (await list.get_list()).filter(item => (item.user === command.user_name && item.title == command.text));
     if (items.length === 0) {
         await respond({
             text: `Sorry, but I couldn't find anything on the list that you posted with that title!`
@@ -72,7 +72,7 @@ app.command("/help-wanted-bot-done", async ({ command, ack, respond }) => {
 app.command("/help-wanted-bot-post", async ({ command, ack, respond }) => {
     try {
         await ack();
-        const matches = list.get_list().filter(item => (item.user === command.user_name && item.title == command.text));
+        const matches = (await list.get_list()).filter(item => (item.user === command.user_name && item.title == command.text));
         const args_fullsplit = command.text.trim().split(" ");
         const args = args_fullsplit.slice(0, 2);
         args.push(args_fullsplit.slice(2).join(" "));
