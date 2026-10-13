@@ -5,7 +5,7 @@ const list = require("./list");
 const fs = require("fs");
 
 const my_id = "U0BPA4K8TKQ";
-const main_channel_id = "help-with-projects";
+const main_channel_id = "get-help-with-projects";
 
 const app = new App({
     token: process.env.SLACK_BOT_TOKEN,
