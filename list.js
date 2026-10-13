@@ -57,7 +57,7 @@ module.exports = {
     add_job,
     job_done: async (title, user) => {
         await list_transaction(async list => {
-            return list.filter(x => x.title !== title || x.user !== x.user);
+            return list.filter(x => x.name !== title || x.user !== x.user);
         })
     }
 };
