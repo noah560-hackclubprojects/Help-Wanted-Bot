@@ -63,7 +63,7 @@ app.command("/help-wanted-bot-done", async ({ command, ack, respond }) => {
             channel: main_channel_id,
             text: `ATTENTION: We have a finished help request! \n\`${command.user_name}\` no longer needs help with \`${items[0].name}\`.`
         });
-        list.job_done(command.user_name, command.text);
+        list.job_done(command.text, command.user_name);
     } else {
         await respond({
             text: `Something weird happened that shouldn't be possible! Please notify \`noahplaysmario\` so he canhelp me figure it out!`
