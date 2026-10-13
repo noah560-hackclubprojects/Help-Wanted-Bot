@@ -49,7 +49,8 @@ app.command("/help-wanted-bot-search", async ({ command, ack, respond }) => {
 
 app.command("/help-wanted-bot-done", async ({ command, ack, respond }) => {
     await ack();
-    const items = (await list.get_list()).filter(item => (item.user === command.user_name && item.title == command.text));
+    const items_  = (await list.get_list());
+    const items = items_.filter(item => (item.user === command.user_name && item.name == command.text));
     if (items.length === 0) {
         await respond({
             text: `Sorry, but I couldn't find anything on the list that you posted with that title!`
@@ -60,7 +61,7 @@ app.command("/help-wanted-bot-done", async ({ command, ack, respond }) => {
         });
         await app.client.chat.postMessage({
             channel: main_channel_id,
-            text: `ATTENTION: We have a finished help request! \n\`${command.user_name}\` no longer needs help with \`${items[0].title}\`.`
+            text: `ATTENTION: We have a finished help request! \n\`${command.user_name}\` no longer needs help with \`${items[0].name}\`.`
         });
     } else {
         await respond({
@@ -72,12 +73,13 @@ app.command("/help-wanted-bot-done", async ({ command, ack, respond }) => {
 app.command("/help-wanted-bot-post", async ({ command, ack, respond }) => {
     try {
         await ack();
-        const matches = (await list.get_list()).filter(item => (item.user === command.user_name && item.title == command.text));
         const args_fullsplit = command.text.trim().split(" ");
         const args = args_fullsplit.slice(0, 2);
+        const items_  = (await list.get_list());
+        const matches = items_.filter(item => (item.user === command.user_name && item.name == args[0]));
         args.push(args_fullsplit.slice(2).join(" "));
-        list.add_job(args[0], command.user_name, args[1], args[2]);
         if (matches.length === 0) {
+            list.add_job(args[0], command.user_name, args[1], args[2]);
             await respond({
                 text: "Okay, I added your request!"
             });
