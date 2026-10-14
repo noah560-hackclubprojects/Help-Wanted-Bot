@@ -17,7 +17,7 @@ function save_list(list) {
 }
 
 async function list_transaction(fn) {
-    lock.acquire("key", async (done) => {
+    await lock.acquire("key", async (done) => {
         save_list(await fn(await get_list()));
         done();
     });
